@@ -181,3 +181,5 @@ release-staging: ## Builds and push container images to the staging image regist
 	$(MAKE) docker-build-all
 	$(MAKE) docker-push-all
 	$(MAKE) release-alias-tag
+	
+# test pr
