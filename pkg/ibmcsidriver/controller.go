@@ -18,9 +18,7 @@ limitations under the License.
 package ibmcsidriver
 
 import (
-	"strings"
-	"time"
-
+	"fmt"
 	cloudProvider "github.com/IBM/ibm-csi-common/pkg/ibmcloudprovider"
 	commonError "github.com/IBM/ibm-csi-common/pkg/messages"
 	"github.com/IBM/ibm-csi-common/pkg/metrics"
@@ -30,6 +28,8 @@ import (
 	utilReasonCode "github.com/IBM/ibmcloud-volume-interface/lib/utils/reasoncode"
 	userError "github.com/IBM/ibmcloud-volume-vpc/common/messages"
 	csi "github.com/container-storage-interface/spec/lib/go/csi"
+	"strings"
+	"time"
 
 	"go.uber.org/zap"
 	"golang.org/x/net/context"
@@ -538,6 +538,10 @@ func (csiCS *CSIControllerServer) ListSnapshots(ctx context.Context, req *csi.Li
 	snapshotID := req.GetSnapshotId()
 	if len(snapshotID) != 0 {
 		snapshot, err := session.GetSnapshot(snapshotID)
+		if snapshot == nil {
+			return &csi.ListSnapshotsResponse{}, nil
+		}
+		fmt.Println(snapshot)
 		if providerError.RetrivalFailed == providerError.GetErrorType(err) {
 			ctxLogger.Info("Snapshot not found. Returning success ...")
 			return &csi.ListSnapshotsResponse{}, nil
