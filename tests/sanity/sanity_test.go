@@ -22,14 +22,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"math/rand"
-	"net/http"
-	"os"
-	"path"
-	"strings"
-	"testing"
-	"time"
-
 	"github.com/IBM/ibmcloud-volume-interface/config"
 	"github.com/IBM/ibmcloud-volume-interface/lib/provider"
 	providerError "github.com/IBM/ibmcloud-volume-interface/lib/utils"
@@ -38,6 +30,12 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
+	"net/http"
+	"os"
+	"path"
+	"strings"
+	"testing"
+	"time"
 
 	cloudProvider "github.com/IBM/ibm-csi-common/pkg/ibmcloudprovider"
 	nodeMetadata "github.com/IBM/ibm-csi-common/pkg/metadata"
@@ -249,6 +247,7 @@ type fakeVolume struct {
 
 type fakeSnapshot struct {
 	*provider.Snapshot
+	tags map[string]string
 }
 
 type fakeProviderSession struct {
@@ -298,15 +297,21 @@ func (c *fakeProviderSession) GetProviderDisplayName() provider.VolumeProvider {
 // Volume operations
 // Create the volume with authorization by passing required information in the volume object
 func (c *fakeProviderSession) CreateVolume(volumeRequest provider.Volume) (*provider.Volume, error) {
+	if len(volumeRequest.SnapshotID) > 0 {
+		if _, ok := c.snapshots[volumeRequest.SnapshotID]; !ok {
+			return nil, errors.New("Not found")
+		}
+	}
 	if volumeRequest.Name == nil || len(*volumeRequest.Name) == 0 {
 		return nil, errors.New("no Volume name passed")
 	}
 	fakeVolume := &fakeVolume{
 		Volume: &provider.Volume{
-			VolumeID: fmt.Sprintf("vol-uuid-test-vol-%s", uuid.New().String()[:10]),
-			Name:     volumeRequest.Name,
-			Region:   volumeRequest.Region,
-			Capacity: volumeRequest.Capacity,
+			VolumeID:   fmt.Sprintf("vol-uuid-test-vol-%s", uuid.New().String()[:10]),
+			Name:       volumeRequest.Name,
+			Region:     volumeRequest.Region,
+			Capacity:   volumeRequest.Capacity,
+			SnapshotID: volumeRequest.SnapshotID,
 		},
 	}
 
@@ -368,7 +373,7 @@ func (c *fakeProviderSession) GetVolume(id string) (*provider.Volume, error) {
 		}
 	}
 	errorMsg := providerError.Message{
-		Code:        "StorageFindFailedWithVolumeName",
+		Code:        "StorageFindFailedWithVolumeID",
 		Description: "Volume not found by volume ID",
 		Type:        providerError.RetrivalFailed,
 	}
@@ -493,59 +498,61 @@ func (c *fakeProviderSession) GetVolumeAttachment(attachRequest provider.VolumeA
 // Snapshot operations
 // Create the snapshot on the volume
 func (c *fakeProviderSession) CreateSnapshot(sourceVolumeID string, snapshotParameters provider.SnapshotParameters) (*provider.Snapshot, error) {
-	fmt.Println(snapshotParameters)
-	r1 := rand.New(rand.NewSource(time.Now().UnixNano()))
-	snapshotID := fmt.Sprintf("snapshot-%d", r1.Uint64())
-
-	/*for _, existingSnapshot := range c.snapshots {
-		if existingSnapshot.Snapshot.SnapshotID == snapshotID && existingSnapshot.Snapshot.VolumeID == volumeID {
-			return nil, errors.New("")
+	snapshotID := fmt.Sprintf("vol-uuid-test-vol-%s", uuid.New().String()[:10])
+	for _, existingSnapshot := range c.snapshots {
+		if existingSnapshot.Snapshot.SnapshotID == snapshotID && existingSnapshot.Snapshot.VolumeID == sourceVolumeID {
+			return nil, errors.New("snapshot already present for same volume")
 		}
-	}*/
-
-	s := &fakeSnapshot{
+	}
+	fakeSnapshot := &fakeSnapshot{
 		Snapshot: &provider.Snapshot{
-			SnapshotID:           snapshotID,
 			VolumeID:             sourceVolumeID,
+			SnapshotID:           snapshotID,
+			ReadyToUse:           false,
+			SnapshotSize:         1,
 			SnapshotCreationTime: time.Now(),
 		},
+		tags: snapshotParameters.SnapshotTags,
 	}
-	c.snapshots[snapshotID] = s
-	return s.Snapshot, nil
-	//return nil, nil
+
+	c.snapshots[snapshotID] = fakeSnapshot
+	return fakeSnapshot.Snapshot, nil
+
 }
 
 // Delete the snapshot
-func (c *fakeProviderSession) DeleteSnapshot(*provider.Snapshot) error {
+func (c *fakeProviderSession) DeleteSnapshot(snap *provider.Snapshot) error {
+	delete(c.snapshots, snap.SnapshotID)
 	return nil
 }
 
 // Get the snapshot
 func (c *fakeProviderSession) GetSnapshot(snapshotID string) (*provider.Snapshot, error) {
+	fmt.Println("GetSnapshot", c.snapshots)
+	fmt.Println("snapshotID", snapshotID)
+	fmt.Println("c.snapshots[snapshotID]", c.snapshots[snapshotID])
 	ret, err := c.snapshots[snapshotID]
-	if err {
-		return ret.Snapshot, nil
+	fmt.Println(ret)
+	if !err {
+		fmt.Println("Error")
+		return nil, errors.New("error")
 	}
-	return nil, nil
+	return ret.Snapshot, nil
 }
 
 // Snapshot list by using tags
 func (c *fakeProviderSession) ListSnapshots(limit int, start string, tags map[string]string) (*provider.SnapshotList, error) {
 	maxLimit := 100
+	fmt.Println("Printing ListSnapshots")
+	fmt.Println(tags)
 	var respSnapshotList = &provider.SnapshotList{}
-	sourceVolumeID := tags["source_volume.id"]
 	errorMsg := providerError.Message{
 		Code:        "StartSnapshotIDNotFound",
-		Description: "The snapshot ID specified in the start parameter of the list snapshot call could not be found.",
+		Description: "The snapshot ID specified in the start parameter of the list volume call could not be found.",
 		Type:        providerError.InvalidRequest,
 	}
-	for _, fakeSnapshot := range c.snapshots {
-		if fakeSnapshot.Snapshot.VolumeID == sourceVolumeID || len(sourceVolumeID) == 0 {
-			respSnapshotList.Snapshots = append(respSnapshotList.Snapshots, fakeSnapshot.Snapshot)
-		}
-	}
 	if start != "" {
-		if _, ok := c.volumes[start]; !ok {
+		if _, ok := c.snapshots[start]; !ok {
 			return nil, errorMsg
 		}
 	}
@@ -557,18 +564,48 @@ func (c *fakeProviderSession) ListSnapshots(limit int, start string, tags map[st
 	}
 	i := 1
 	for _, f := range c.snapshots {
+		if f.Snapshot.VolumeID == tags["source_volume.id"] || len(tags["source_volume.id"]) == 0 {
+			respSnapshotList.Snapshots = append(respSnapshotList.Snapshots, f.Snapshot)
+			respSnapshotList.Next = ""
+			return respSnapshotList, nil
+		}
 		if i > limit {
 			break
 		}
 		respSnapshotList.Snapshots = append(respSnapshotList.Snapshots, f.Snapshot)
 		i++
 	}
+
+	respSnapshotList.Next = "3e898aa7-ac71-4323-952d-a8d741c65a68"
 	return respSnapshotList, nil
 }
 
 // Get the snapshot By name
 func (c *fakeProviderSession) GetSnapshotByName(snapshotName string) (*provider.Snapshot, error) {
-	return nil, nil
+	if len(snapshotName) == 0 {
+		return nil, errors.New("no name passed")
+	}
+	var snapshots []*fakeSnapshot
+	for _, s := range c.snapshots {
+		name, exists := s.tags["name"]
+		if !exists {
+			continue
+		}
+		if name == snapshotName {
+			fmt.Println("name is same")
+			snapshots = append(snapshots, s)
+		}
+	}
+	if len(snapshots) == 0 {
+		errorMsg := providerError.Message{
+			Code:        "StorageFindFailedWithSnapshotName",
+			Description: "Snapshot not found by name",
+			Type:        providerError.RetrivalFailed,
+		}
+		return nil, errorMsg
+	}
+
+	return snapshots[0].Snapshot, nil
 }
 
 func createTargetDir(targetPath string) error {

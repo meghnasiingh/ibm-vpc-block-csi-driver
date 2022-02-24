@@ -458,6 +458,9 @@ func (csiCS *CSIControllerServer) CreateSnapshot(ctx context.Context, req *csi.C
 
 	snapshot, err := session.GetSnapshotByName(snapshotName)
 	if snapshot != nil {
+		fmt.Println("printing values")
+		fmt.Println(snapshot.VolumeID)
+		fmt.Println(sourceVolumeID)
 		if snapshot.VolumeID != sourceVolumeID {
 			return nil, commonError.GetCSIError(ctxLogger, commonError.SnapshotAlreadyExists, requestID, err, snapshotName, sourceVolumeID)
 		}
@@ -466,9 +469,11 @@ func (csiCS *CSIControllerServer) CreateSnapshot(ctx context.Context, req *csi.C
 	}
 	snapshotParameters := provider.SnapshotParameters{}
 	snapshotParameters.Name = snapshotName
-
+	snapshotTags := map[string]string{
+		"name": snapshotName,
+	}
+	snapshotParameters.SnapshotTags = snapshotTags
 	snapshot, err = session.CreateSnapshot(sourceVolumeID, snapshotParameters)
-
 	if err != nil {
 		return nil, commonError.GetCSIError(ctxLogger, commonError.InternalError, requestID, err, "creation")
 	}
@@ -541,7 +546,6 @@ func (csiCS *CSIControllerServer) ListSnapshots(ctx context.Context, req *csi.Li
 		if snapshot == nil {
 			return &csi.ListSnapshotsResponse{}, nil
 		}
-		fmt.Println(snapshot)
 		if providerError.RetrivalFailed == providerError.GetErrorType(err) {
 			ctxLogger.Info("Snapshot not found. Returning success ...")
 			return &csi.ListSnapshotsResponse{}, nil
@@ -557,9 +561,11 @@ func (csiCS *CSIControllerServer) ListSnapshots(ctx context.Context, req *csi.Li
 	maxEntries := int(req.MaxEntries)
 	tags := map[string]string{}
 	sourceVolumeID := req.GetSourceVolumeId()
+	//tags["source_volume.id"] = sourceVolumeID
 	if len(sourceVolumeID) != 0 {
 		tags["source_volume.id"] = sourceVolumeID
 	}
+	fmt.Println("pritning tags in list", tags)
 	snapshotList, err := session.ListSnapshots(maxEntries, req.StartingToken, tags)
 	if err != nil {
 		errCode := err.(providerError.Message).Code
