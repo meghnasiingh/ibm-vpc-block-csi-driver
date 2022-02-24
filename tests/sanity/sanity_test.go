@@ -30,6 +30,7 @@ import (
 	"go.uber.org/zap"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
+	"math/rand"
 	"net/http"
 	"os"
 	"path"
@@ -257,6 +258,7 @@ type fakeProviderSession struct {
 	pub          map[string]string
 	providerName provider.VolumeProvider
 	providerType provider.VolumeType
+	tokens       map[string]int
 }
 
 func newFakeProviderSession() *fakeProviderSession {
@@ -266,6 +268,7 @@ func newFakeProviderSession() *fakeProviderSession {
 		pub:          make(map[string]string),
 		providerName: csiConfig.CSIProviderName,
 		providerType: csiConfig.CSIProviderVolumeType,
+		tokens:       make(map[string]int),
 	}
 }
 
@@ -541,43 +544,28 @@ func (c *fakeProviderSession) GetSnapshot(snapshotID string) (*provider.Snapshot
 }
 
 // Snapshot list by using tags
-func (c *fakeProviderSession) ListSnapshots(limit int, start string, tags map[string]string) (*provider.SnapshotList, error) {
-	maxLimit := 100
-	fmt.Println("Printing ListSnapshots")
-	fmt.Println(tags)
-	var respSnapshotList = &provider.SnapshotList{}
-	errorMsg := providerError.Message{
-		Code:        "StartSnapshotIDNotFound",
-		Description: "The snapshot ID specified in the start parameter of the list volume call could not be found.",
-		Type:        providerError.InvalidRequest,
-	}
-	if start != "" {
-		if _, ok := c.snapshots[start]; !ok {
-			return nil, errorMsg
+func (c *fakeProviderSession) ListSnapshots(maxResults int, nextToken string, tags map[string]string) (*provider.SnapshotList, error) {
+	var snapshots []*provider.Snapshot
+	var retToken string
+	for _, fakeSnapshot := range c.snapshots {
+		if fakeSnapshot.Snapshot.VolumeID == tags["source_volume.id"] || len(tags["source_volume.id"]) == 0 {
+			snapshots = append(snapshots, fakeSnapshot.Snapshot)
 		}
 	}
-
-	if limit == 0 {
-		limit = 50
-	} else if limit > maxLimit {
-		limit = maxLimit
+	if maxResults > 0 {
+		r1 := rand.New(rand.NewSource(time.Now().UnixNano()))
+		retToken = fmt.Sprintf("token-%d", r1.Uint64())
+		c.tokens[retToken] = maxResults
+		snapshots = snapshots[0:maxResults]
+		fmt.Printf("%v\n", snapshots)
 	}
-	i := 1
-	for _, f := range c.snapshots {
-		if f.Snapshot.VolumeID == tags["source_volume.id"] || len(tags["source_volume.id"]) == 0 {
-			respSnapshotList.Snapshots = append(respSnapshotList.Snapshots, f.Snapshot)
-			respSnapshotList.Next = ""
-			return respSnapshotList, nil
-		}
-		if i > limit {
-			break
-		}
-		respSnapshotList.Snapshots = append(respSnapshotList.Snapshots, f.Snapshot)
-		i++
+	if len(nextToken) != 0 {
+		snapshots = snapshots[c.tokens[nextToken]:]
 	}
-
-	respSnapshotList.Next = "3e898aa7-ac71-4323-952d-a8d741c65a68"
-	return respSnapshotList, nil
+	return &provider.SnapshotList{
+		Snapshots: snapshots,
+		Next:      retToken,
+	}, nil
 }
 
 // Get the snapshot By name
