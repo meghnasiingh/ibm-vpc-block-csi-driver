@@ -424,7 +424,19 @@ func checkIfVolumeExists(session provider.Session, vol provider.Volume, ctxLogge
 }
 
 // createCSIVolumeResponse ...
-func createCSIVolumeResponse(vol provider.Volume, capBytes int64, zones []string, clusterID string) *csi.CreateVolumeResponse {
+func createCSIVolumeResponse(vol provider.Volume, capBytes int64, zones []string, clusterID string, ctxLogger *zap.Logger) *csi.CreateVolumeResponse {
+	var src *csi.VolumeContentSource
+	ctxLogger.Info("Printing vol object", zap.Reflect("Printing vol object", vol))
+	ctxLogger.Info("Printing vol.SnapshotID", zap.Any(vol.SnapshotID, vol.SnapshotID))
+	if vol.SnapshotID != "" {
+		src = &csi.VolumeContentSource{
+			Type: &csi.VolumeContentSource_Snapshot{
+				Snapshot: &csi.VolumeContentSource_SnapshotSource{
+					SnapshotId: vol.SnapshotID,
+				},
+			},
+		}
+	}
 	labels := map[string]string{}
 
 	// Update labels for PV objects
@@ -448,10 +460,13 @@ func createCSIVolumeResponse(vol provider.Volume, capBytes int64, zones []string
 	// Create csi volume response
 	volResp := &csi.CreateVolumeResponse{
 		Volume: &csi.Volume{
-			CapacityBytes:      capBytes,
-			VolumeId:           vol.VolumeID,
-			VolumeContext:      labels,
-			AccessibleTopology: []*csi.Topology{topology},
+			CapacityBytes: capBytes,
+			VolumeId:      vol.VolumeID,
+			VolumeContext: labels,
+			AccessibleTopology: []*csi.Topology{
+				topology,
+			},
+			ContentSource: src,
 		},
 	}
 	return volResp

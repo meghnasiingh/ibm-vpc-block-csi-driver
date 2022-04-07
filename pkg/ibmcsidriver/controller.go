@@ -117,6 +117,7 @@ func (csiCS *CSIControllerServer) CreateVolume(ctx context.Context, req *csi.Cre
 	}
 
 	volumeSource := req.GetVolumeContentSource()
+	ctxLogger.Info("Printing volumeSource", zap.Reflect("Printing volumeSource", volumeSource))
 	if volumeSource != nil {
 		if _, ok := volumeSource.GetType().(*csi.VolumeContentSource_Snapshot); !ok {
 			return nil, commonError.GetCSIError(ctxLogger, commonError.UnsupportedVolumeContentSource, requestID, err)
@@ -126,25 +127,31 @@ func (csiCS *CSIControllerServer) CreateVolume(ctx context.Context, req *csi.Cre
 			return nil, commonError.GetCSIError(ctxLogger, commonError.VolumeInvalidArguments, requestID, err)
 		}
 		requestedVolume.SnapshotID = sourceSnapshot.GetSnapshotId()
+		ctxLogger.Info("Exit assigning snapshotid", zap.Reflect("requestedVolume.SnapshotID", requestedVolume.SnapshotID))
 	}
 
 	existingVol, err := checkIfVolumeExists(session, *requestedVolume, ctxLogger)
 	if existingVol != nil && err == nil {
 		ctxLogger.Info("Volume already exists", zap.Reflect("ExistingVolume", existingVol))
 		if existingVol.Capacity != nil && requestedVolume.Capacity != nil && *existingVol.Capacity == *requestedVolume.Capacity {
-			return createCSIVolumeResponse(*existingVol, int64(*(existingVol.Capacity)*utils.GB), nil, csiCS.CSIProvider.GetClusterInfo().ClusterID), nil
+			return createCSIVolumeResponse(*existingVol, int64(*(existingVol.Capacity)*utils.GB), nil, csiCS.CSIProvider.GetClusterInfo().ClusterID, ctxLogger), nil
 		}
 		return nil, commonError.GetCSIError(ctxLogger, commonError.VolumeAlreadyExists, requestID, err, name, *requestedVolume.Capacity)
 	}
 
 	// Create volume
 	volumeObj, err := session.CreateVolume(*requestedVolume)
+	ctxLogger.Info("Printing volumeObj", zap.Reflect("Printing volumeObj", volumeObj))
 	if err != nil {
-		return nil, commonError.GetCSIError(ctxLogger, commonError.InternalError, requestID, err, "creation")
+		if strings.Contains(err.Error(), "Not found") {
+			return nil, commonError.GetCSIError(ctxLogger, commonError.ObjectNotFound, requestID, err, "creation")
+		} else {
+			return nil, commonError.GetCSIError(ctxLogger, commonError.InternalError, requestID, err, "creation")
+		}
 	}
 
 	// return csi volume object
-	return createCSIVolumeResponse(*volumeObj, int64(*(requestedVolume.Capacity)*utils.GB), nil, csiCS.CSIProvider.GetClusterInfo().ClusterID), nil
+	return createCSIVolumeResponse(*volumeObj, int64(*(requestedVolume.Capacity)*utils.GB), nil, csiCS.CSIProvider.GetClusterInfo().ClusterID, ctxLogger), nil
 }
 
 // DeleteVolume ...

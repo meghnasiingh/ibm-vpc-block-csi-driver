@@ -269,7 +269,41 @@ func FromProviderToLibVolume(vpcVolume *models.Volume, logger *zap.Logger) (libV
 	if vpcVolume.Zone != nil {
 		libVolume.Az = vpcVolume.Zone.Name
 	}
+	if vpcVolume.SourceSnapshot != nil {
+		libVolume.SnapshotID = vpcVolume.SourceSnapshot.ID
+	}
 	libVolume.CRN = vpcVolume.CRN
+	return
+}
+
+// FromProviderToLibSnapshot converting vpc provider snapshot type to generic lib snapshot type
+func FromProviderToLibSnapshot(vpcSnapshot *models.Snapshot, logger *zap.Logger) (libSnapshot *provider.Snapshot) {
+	logger.Debug("Entry of FromProviderToLibSnapshot method...")
+	defer logger.Debug("Exit from FromProviderToLibSnapshot method...")
+
+	if vpcSnapshot == nil {
+		logger.Info("Snapshot details are empty")
+		return
+	}
+
+	logger.Debug("Snapshot details of VPC client", zap.Reflect("models.Snapshot", vpcSnapshot))
+
+	var createdTime time.Time
+	if vpcSnapshot.CreatedAt != nil {
+		createdTime = *vpcSnapshot.CreatedAt
+	}
+	libSnapshot = &provider.Snapshot{
+		VolumeID:             vpcSnapshot.SourceVolume.ID,
+		SnapshotID:           vpcSnapshot.ID,
+		SnapshotCreationTime: createdTime,
+		SnapshotSize:         GiBToBytes(vpcSnapshot.Size),
+		VPC:                  provider.VPC{Href: vpcSnapshot.Href},
+	}
+	if vpcSnapshot.LifecycleState == snapshotReadyState {
+		libSnapshot.ReadyToUse = true
+	} else {
+		libSnapshot.ReadyToUse = false
+	}
 	return
 }
 

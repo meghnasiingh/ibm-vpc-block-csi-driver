@@ -84,7 +84,7 @@ func (vpcs *VPCSession) CreateVolume(volumeRequest provider.Volume) (volumeRespo
 	vpcs.Logger.Info("Successfully created volume from VPC provider...", zap.Reflect("VolumeDetails", volume))
 
 	vpcs.Logger.Info("Waiting for volume to be in valid (available) state", zap.Reflect("VolumeDetails", volume))
-	err = WaitForValidVolumeState(vpcs, volume.ID)
+	err = WaitForValidVolumeState(vpcs, volume)
 	if err != nil {
 		return nil, userError.GetUserError("VolumeNotInValidState", err, volume.ID)
 	}
