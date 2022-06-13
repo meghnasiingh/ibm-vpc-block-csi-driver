@@ -15,7 +15,7 @@ require (
 	go.uber.org/zap v1.20.0
 	golang.org/x/net v0.0.0-20211209124913-491a49abca63
 	golang.org/x/sys v0.0.0-20210831042530-f4d43177bf5e
-	google.golang.org/grpc v1.36.0
+	google.golang.org/grpc v1.36.1
 	google.golang.org/protobuf v1.26.0
 	k8s.io/kubernetes v1.21.0
 	k8s.io/mount-utils v0.21.0
