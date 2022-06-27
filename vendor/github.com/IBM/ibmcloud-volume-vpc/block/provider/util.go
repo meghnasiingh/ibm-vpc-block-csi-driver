@@ -75,6 +75,7 @@ func retry(logger *zap.Logger, retryfunc func() error) error {
 		}
 		err = retryfunc()
 		if err != nil {
+			logger.Info("err object is not nil", zap.Reflect("ERR", err))
 			//Skip retry for the below type of Errors
 			modelError, ok := err.(*models.Error)
 			if !ok {

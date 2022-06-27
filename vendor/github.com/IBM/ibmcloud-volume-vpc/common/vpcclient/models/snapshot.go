@@ -63,8 +63,8 @@ type Snapshot struct {
 	Bootable        bool             `json:"bootable,omitempty"`
 	LifecycleState  string           `json:"lifecycle_state,omitempty"`
 	SourceVolume    *SourceVolume    `json:"source_volume,omitempty"`
-	UserTags        string           `json:"user_tags,omitempty"`
-	ServiceTags     string           `json:"service_tags,omitempty"`
+	UserTags        []string         `json:"user_tags,omitempty"`
+	ServiceTags     []string         `json:"service_tags,omitempty"`
 	CapturedAt      *time.Time       `json:"captured_at,omitempty"`
 
 	SourceImage      *SourceImage         `json:"source_image,omitempty"`

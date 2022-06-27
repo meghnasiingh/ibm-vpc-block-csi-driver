@@ -64,6 +64,14 @@ github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220407053406-22455295c9e3 h1
 github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220407053406-22455295c9e3/go.mod h1:jWNGtQHLdIjtQd3r/gI7uKv5M6BApujVO+CLx+wjRcc=
 github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220610062959-c49adc8781bb h1:pfFw5LxauwfGxfSYDxWYZYdImvnlxrro18TuRZBldTQ=
 github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220610062959-c49adc8781bb/go.mod h1:jWNGtQHLdIjtQd3r/gI7uKv5M6BApujVO+CLx+wjRcc=
+github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220624140418-46ff4e8db3de h1:pM9ATN1jA0/sN2hKtEYr0HAIWo/j1GYq+QCTpsXfAPA=
+github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220624140418-46ff4e8db3de/go.mod h1:jWNGtQHLdIjtQd3r/gI7uKv5M6BApujVO+CLx+wjRcc=
+github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220627051758-1f2f18fd4ced h1:DrpnlgH/kQWo84Z7uQv1sObKwxjmDDw9GG/ikSagMRk=
+github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220627051758-1f2f18fd4ced/go.mod h1:jWNGtQHLdIjtQd3r/gI7uKv5M6BApujVO+CLx+wjRcc=
+github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220627070118-ed36f7d08330 h1:mCt12DlBz2ETB4VFnNGPWyrKvt1YLC5ydO1UE+veWew=
+github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220627070118-ed36f7d08330/go.mod h1:jWNGtQHLdIjtQd3r/gI7uKv5M6BApujVO+CLx+wjRcc=
+github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220627115325-430f6c81c0a3 h1:7GsguPpIOCwgIfBFpNjPzvMQSdrz4X9vdtcel9j/9gY=
+github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220627115325-430f6c81c0a3/go.mod h1:jWNGtQHLdIjtQd3r/gI7uKv5M6BApujVO+CLx+wjRcc=
 github.com/JeffAshton/win_pdh v0.0.0-20161109143554-76bb4ee9f0ab/go.mod h1:3VYc5hodBMJ5+l/7J4xAyMeuM2PNuepvHlGs8yilUCA=
 github.com/MakeNowJust/heredoc v0.0.0-20170808103936-bb23615498cd/go.mod h1:64YHyfSL2R96J44Nlwm39UHepQbyR5q10x7iYa1ks2E=
 github.com/Microsoft/go-winio v0.4.15-0.20190919025122-fc70bd9a86b5/go.mod h1:tTuCMEN+UleMWgg9dVx4Hu52b1bJo+59jBh3ajtinzw=

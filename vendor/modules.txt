@@ -24,7 +24,7 @@ github.com/IBM/ibmcloud-volume-interface/lib/utils/reasoncode
 github.com/IBM/ibmcloud-volume-interface/provider/auth
 github.com/IBM/ibmcloud-volume-interface/provider/iam
 github.com/IBM/ibmcloud-volume-interface/provider/local
-# github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220610062959-c49adc8781bb
+# github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220627115325-430f6c81c0a3
 ## explicit
 github.com/IBM/ibmcloud-volume-vpc/block/provider
 github.com/IBM/ibmcloud-volume-vpc/block/utils

@@ -5,7 +5,7 @@ go 1.16
 require (
 	github.com/IBM/ibm-csi-common v1.0.0-beta9.0.20220614052128-a005300a56df
 	github.com/IBM/ibmcloud-volume-interface v1.0.1-0.20220217090023-3124f503e355
-	github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220610062959-c49adc8781bb
+	github.com/IBM/ibmcloud-volume-vpc v1.0.0-beta9.0.20220627115325-430f6c81c0a3
 	github.com/container-storage-interface/spec v1.5.0
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/google/uuid v1.1.2
