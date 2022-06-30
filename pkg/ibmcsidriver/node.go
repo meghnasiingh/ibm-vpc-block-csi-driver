@@ -20,12 +20,12 @@ package ibmcsidriver
 import (
 	"fmt"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
 	"sync"
-
-	"os/exec"
 	"time"
 
 	commonError "github.com/IBM/ibm-csi-common/pkg/messages"
