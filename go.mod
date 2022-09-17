@@ -98,6 +98,7 @@ require (
 )
 
 replace (
+	github.com/IBM/ibm-csi-common => /Users/meghna/go_workspace/src/github.com/IBM/ibm-csi-common
 	github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.1.0
 	k8s.io/api => k8s.io/api v0.21.0
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.21.0

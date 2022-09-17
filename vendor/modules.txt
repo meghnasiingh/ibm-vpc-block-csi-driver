@@ -8,11 +8,12 @@ github.com/IBM-Cloud/ibm-cloud-cli-sdk/common/rest
 # github.com/IBM/go-sdk-core/v5 v5.9.1
 ## explicit; go 1.14
 github.com/IBM/go-sdk-core/v5/core
-# github.com/IBM/ibm-csi-common v1.0.0-beta19
+# github.com/IBM/ibm-csi-common v1.0.0-beta19 => /Users/meghna/go_workspace/src/github.com/IBM/ibm-csi-common
 ## explicit; go 1.18
 github.com/IBM/ibm-csi-common/pkg/ibmcloudprovider
 github.com/IBM/ibm-csi-common/pkg/messages
 github.com/IBM/ibm-csi-common/pkg/metadata
+github.com/IBM/ibm-csi-common/pkg/metadata/fake
 github.com/IBM/ibm-csi-common/pkg/metrics
 github.com/IBM/ibm-csi-common/pkg/mountmanager
 github.com/IBM/ibm-csi-common/pkg/utils
@@ -733,6 +734,7 @@ sigs.k8s.io/structured-merge-diff/v4/value
 # sigs.k8s.io/yaml v1.2.0
 ## explicit; go 1.12
 sigs.k8s.io/yaml
+# github.com/IBM/ibm-csi-common => /Users/meghna/go_workspace/src/github.com/IBM/ibm-csi-common
 # github.com/dgrijalva/jwt-go => github.com/golang-jwt/jwt/v4 v4.1.0
 # k8s.io/api => k8s.io/api v0.21.0
 # k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.21.0

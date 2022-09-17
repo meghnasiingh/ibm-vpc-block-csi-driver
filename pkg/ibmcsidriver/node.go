@@ -30,6 +30,7 @@ import (
 	"time"
 
 	commonError "github.com/IBM/ibm-csi-common/pkg/messages"
+	nodeInfoManager "github.com/IBM/ibm-csi-common/pkg/metadata"
 	nodeMetadata "github.com/IBM/ibm-csi-common/pkg/metadata"
 	"github.com/IBM/ibm-csi-common/pkg/metrics"
 	"github.com/IBM/ibm-csi-common/pkg/mountmanager"
@@ -359,8 +360,13 @@ func (csiNS *CSINodeServer) NodeGetInfo(ctx context.Context, req *csi.NodeGetInf
 	var maxVolumesPerNode int64 = DefaultVolumesPerNode
 
 	// Check if node metadata service initialized properly
+	nodeName := os.Getenv("KUBE_NODE_NAME")
+
+	nodeInfo := nodeInfoManager.NodeInfoManager{
+		NodeName: nodeName,
+	}
 	if csiNS.Metadata == nil {
-		metadata, err := nodeMetadata.NewNodeMetadata(os.Getenv("KUBE_NODE_NAME"), ctxLogger)
+		metadata, err := nodeInfo.NewNodeMetadata(ctxLogger)
 		if err != nil {
 			ctxLogger.Error("Failed to initialize node metadata", zap.Error(err))
 			return nil, commonError.GetCSIError(ctxLogger, commonError.NodeMetadataInitFailed, requestID, err)

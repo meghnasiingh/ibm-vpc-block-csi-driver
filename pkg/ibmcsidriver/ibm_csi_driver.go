@@ -19,7 +19,6 @@ package ibmcsidriver
 
 import (
 	"fmt"
-	"os"
 
 	cloudProvider "github.com/IBM/ibm-csi-common/pkg/ibmcloudprovider"
 	commonError "github.com/IBM/ibm-csi-common/pkg/messages"
@@ -46,7 +45,7 @@ type IBMCSIDriver struct {
 	nscap []*csi.NodeServiceCapability
 }
 
-var nodeMeta = nodeMetadata.NewNodeMetadata
+//var nodeMeta = nodeMetadata.NewNodeMetadata
 
 // GetIBMCSIDriver ...
 func GetIBMCSIDriver() *IBMCSIDriver {
@@ -54,7 +53,7 @@ func GetIBMCSIDriver() *IBMCSIDriver {
 }
 
 // SetupIBMCSIDriver ...
-func (icDriver *IBMCSIDriver) SetupIBMCSIDriver(provider cloudProvider.CloudProviderInterface, mounter mountManager.Mounter, statsUtil StatsUtils, metadata nodeMetadata.NodeMetadata, lgr *zap.Logger, name, vendorVersion string) error {
+func (icDriver *IBMCSIDriver) SetupIBMCSIDriver(provider cloudProvider.CloudProviderInterface, mounter mountManager.Mounter, statsUtil StatsUtils, metadata nodeMetadata.NodeMetadata, nodeInfo nodeMetadata.NodeInfo, lgr *zap.Logger, name, vendorVersion string) error {
 	icDriver.logger = lgr
 	icDriver.logger.Info("IBMCSIDriver-SetupIBMCSIDriver setting up IBM CSI Driver...")
 
@@ -110,7 +109,7 @@ func (icDriver *IBMCSIDriver) SetupIBMCSIDriver(provider cloudProvider.CloudProv
 	icDriver.logger.Info("Successfully setup IBM CSI driver")
 
 	// Set up Region
-	regionMetadata, err := nodeMeta(os.Getenv("KUBE_NODE_NAME"), lgr)
+	regionMetadata, err := nodeInfo.NewNodeMetadata(lgr)
 	if err != nil {
 		return fmt.Errorf("Controller_Helper: Failed to initialize node metadata: error: %v", err)
 	}
